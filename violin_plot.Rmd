@@ -1,0 +1,176 @@
+---
+title: "Titanic histogram and violin plot"
+author: "Saixiong Han"
+date: "October 19, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Training Data Processing
+
+This part we imported train data into R. On account of later processing, I added two character data for Surviving and Pclass attributes. After calculting the missing data in the dataset,I choose the data without missing value into a new dataset.
+
+```{r preparetion1}
+train<-read.csv('F:/GraduateStudy/2016Fall/DatAna/Assignment/3/train_s.csv',stringsAsFactors=F)
+str(train)
+```
+import and view data
+
+```{r preparetion2}
+train1=train[complete.cases(train),]
+summary(train1)
+```
+create a new dataset without missing data and get the summary
+
+## Analyze single factor
+
+calculate single factor importance in surviving. The tables below show the most important factors in surviving. 
+
+## -Pclass
+
+```{r Pclass, echo=FALSE}
+table(train1$Sex,train1$Pclass,train1$Survived)
+```
+
+The female survived in the Titanic most from first and second class, 
+the number of female in the first and second class died in Titanic is less than 10. 
+This is a very important factor.
+
+## -Parch
+
+```{r Parch, echo=FALSE}
+table(train1$Sex,train1$Parch,train1$Survived)
+```
+Women without any children or parents are more likely to survive 
+While the more parch they have, the less probability they can survive. 
+
+## -SibSp
+
+```{r SibSp, echo=FALSE}
+table(train1$Sex,train1$SibSp,train1$Survived)
+```
+Women without any siblings or spouses are more likely to survive.
+While the more siblings they have, the less probability they can survive. 
+
+## -Title
+
+```{r title, echo=FALSE}
+train1$Title<-gsub('(.*,)|(\\..*)','',train1$Name)
+table(train1$Sex,train1$Title,train1$Survived)
+```
+The survived unmarried women is more than married women, which is accor1dance with the result about SibSp. Generally, the number of women survived is more than the women died.
+
+
+## Data visualization
+
+```{r library, echo=FALSE}
+require(ggplot2)
+```
+data(train1)
+head(train1)
+
+
+## -Pclass,Survived,Age and Fare Scatter plot
+
+```{r scatter1, echo=FALSE}
+p<-ggplot(data=train1,mapping = aes(x=Age,y=Fare,shape=Pclass_s,color=Survived_s))
+p+geom_point()
+```
+
+This scatter plot shows there is no linear relation between age and fare. 
+From the color scatter we can see, blue points are mostly on the top wihle the red points are maily on the bottom. 
+That means the higher fare is, the more chances for surviving. It also can be shown in the shape of different classes. The first and second class get more chances for surviving compared to the third class.
+
+## -Sex,Survived,Age and Fare Sctter plot
+
+```{r scatter2, echo=FALSE}
+p<-ggplot(data=train1,mapping = aes(x=Age,y=Fare,shape=Sex,color=Survived_s))
+p+geom_point()
+```
+
+the blue round points is more than blue squre points. 
+That shows females have more chances of surviving compared to males. 
+In addition, the higher fare of females bought, the higher chances for surviving.
+
+## -Age Histogram
+```{r histogram1, echo=FALSE}
+ggplot(train1)+geom_histogram(aes(x=Age,fill=Survived_s))
+```
+
+The age histogram is left-skewed, whhich means the mean age is less than the median.
+Most of the people is between 20 to 40 years old.
+Most of the survived people also are around 20 to 30 years old.
+Other ages seldom people survived and there is an outlier around 30 age.
+
+## -Fare Histogram
+
+```{r histogram2, echo=FALSE}
+ggplot(train1)+geom_histogram(aes(x=Fare,fill=Survived_s))
+```
+
+The fare histigram is left skewed, which means the mean fare is less than the median.
+Most of people get the fare less than 50 and most of them didn't survived.
+Few people get the fare above 100, but most of this part of people survived.
+
+
+## -Family Size Bar Plot
+
+```{r barplot, echo=FALSE}
+ggplot(train1)+geom_bar(aes(x=SibSp+Parch,fill=Survived_s))+coord_flip()
+```
+
+Most people don't have any family members and a quarter of them survived.
+Survived people are more than died people during the range of 1 to 3 family members.
+People having more than 3 family members get lower chance for surviving.
+
+## -Fare,Sex and Survived Box Plot
+
+```{r boxplot1, echo=FALSE}
+ggplot(train1)+geom_boxplot(aes(x=Sex,y=Fare,fill=Survived_s))
+```
+
+The lower whisker and lower quartile for all the four box are the same.
+the survived female have higher median and upper quartier than the died female.
+That shows female with higher fare or higher pclass have more chance for surviving.
+it's the same with male's surviving, but the amount of surviving men is smaller than women.
+The distribution of survived female is very sparse while the distribution of died male is very intensive.
+
+## -Fare,Pclass and Survived Box Plot
+
+```{r boxplot2, echo=FALSE}
+ggplot(train1)+geom_boxplot(aes(x=Pclass_s,y=Fare,fill=Survived_s))
+```
+
+The charts shows that the fare in the first class has larger range than the second and third class.
+The median of survived people in first class is equal to the upper quartier of dead people.
+Generally, people in the first class with higher fare have more chance to survive.
+The upper whisker of second and third class are almost equal to the lower quartier of first class.
+The fare distribution of second and third class are more intensive than the first class.
+
+
+## -Age,Pclass and Survived Violin Plot
+
+```{r violin1, echo=FALSE}
+p<-ggplot(train1,aes(factor(Pclass),Age))
+p+geom_violin(aes(fill=Survived_s))
+```
+
+In the first class, most of survived people are around 35 years old and its range is very wide. The distribution of the first class is even, no obvious concentrated trend.
+In the second class, there is obvious concentrated trend at around 30 year old. That shows most people are aronud 30 years old. The distribution of dead people's age is a little higher than survived people.
+The concentrated trend at 20 year old in the third class is also very obvious. The survived people in third class are younger than the dead people.
+
+
+## -Age,Sex andI Survived Violin Plot
+
+```{r violin2, echo=FALSE}
+p<-ggplot(train1,aes(factor(Sex),Age))
+p+geom_violin(aes(fill=Survived_s))
+```
+
+The distribution of male is wider than female generally. 
+Most survived women are around 20 to 30 years old.The distribution of other women at other age is tend to be uniform.
+The survived men's age is concentrated in 30 years old. The distribution of other age is not uniform but extremely few.
+

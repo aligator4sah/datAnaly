@@ -1,0 +1,152 @@
+-- 1.how many players are inducted into the hall of fame?
+-- how many distinct players in the batting data set are in the hall of fame?
+select count(distinct playerID)
+from HallOfFame
+where inducted = 'Y'
+
+select count(distinct Batting.playerID)
+from Batting
+where Batting.playerID in
+(select HallOfFame.playerID
+from HallOfFame)
+--where HallOfFame.inducted = 'Y')
+
+select count(distinct HallOfFame.playerID) as Nplayers, HallOfFame.inducted 
+into answ1
+from Batting, HallOfFame
+where HallOfFame.playerID = Batting.playerID
+group by HallOfFame.inducted
+
+
+-- 2.what player has exactly 3000 hits total for his career?
+--   what year was he inducted into the hall of fame?
+select a.* 
+into SumHitstable
+from
+(select playerID, sum(Hits) as SumHits
+from Batting
+group by playerID) as a;
+
+select SumHitstable.playerID, SumHitstable.SumHits, HallOfFame.inducted, HallOfFame.yearid
+into answ2
+from SumHitstable, HallOfFame
+where SumHitstable.playerID = HallOfFame.playerID and HallOfFame.inducted = 'Y' and SumHitstable.SumHits = 3000;
+
+-- 3 what player had the highest number of homeruns in 1919?
+select Batting.playerID, Batting.yearID, sum(Batting.Homeruns) as SumHomeruns
+into answ3
+from Batting
+where Batting.yearID = 1919
+group by Batting.playerID, Batting.yearID
+order by SumHomeruns desc;
+
+-- 4 what team has had the most hits after the year 2000, how many?
+--   Team id bat
+select Batting.teamID, Batting.yearID, sum(Batting.Hits) as SumHits1
+into teamhit
+from Batting
+where Batting.yearID > 2000
+group by Batting.teamID, Batting.yearID;
+
+select teamhit.teamID, sum(teamhit.SumHits1) as SumAfter2k
+into answ4
+from teamhit
+group by teamhit.teamID
+order by SumAfter2k desc;
+drop table teamhit;
+
+-- 5 a) what player has the most cumulative hits?
+-- 	b)how many does he have?        
+-- 	c)is he in the hall of fame?
+-- 	d)how many votes has he received total?
+select Batting.playerID, sum(Batting.Hits) as PlayerHits
+into sumHits
+from Batting
+group by Batting.playerID;
+
+select HallOfFame.playerID, HallOfFame.inducted, sum(HallOfFame.votes) as PlayerVotes
+into sumVotes
+from HallOfFame
+group by HallOfFame.playerID, HallOfFame.inducted;
+
+select sumHits.playerID, sumHits.PlayerHits,sumVotes.inducted, sumVotes.PlayerVotes
+into answ5
+from sumHits, sumVotes
+where sumHits.playerID = sumVotes.playerID
+order by sumHits.PlayerHits desc;
+
+-- 6 a) what 3 players have the highest number of cumulative strikeouts over their career that have been inducted into the hall of fame?
+-- Halloffame-bat  
+-- 	b)how many total strikeouts do they each have?
+select Batting.playerID, sum(Batting.strikeOuts) as sumStrikeOuts
+into answ6
+from Batting
+where Batting.playerID in
+(select HallOfFame.playerID
+from HallOfFame
+where HallOfFame.inducted = 'Y')
+group by Batting.playerID
+order by sumStrikeOuts desc
+
+-- 7a)what 3 players have the highest cumulative total number of homeruns and have been inducted into the hall of fame?
+-- 	b)what 3 players have the highest cumulative total number of homeruns and have NOT been inducted into the hall of fame?
+select Batting.playerID, sum(Batting.Homeruns) as sumHomeruns
+into answ7a
+from Batting
+where Batting.playerID = HallOfFame.playerID and HallOfFame.inducted='Y'
+-- (select HallOfFame.playerID
+-- from HallOfFame
+-- where HallOfFame.inducted = 'Y')
+group by Batting.playerID
+order by sumHomeruns desc
+
+select Batting.playerID, sum(Batting.Homeruns) as sumHomeruns
+into answ7b
+from Batting
+where Batting.playerID in
+(select HallOfFame.playerID
+from HallOfFame
+where HallOfFame.inducted = 'N')
+group by Batting.playerID
+order by sumHomeruns desc
+
+-- 8)what player had the highest batting average from 1930 to 1940 with a cumulative total of hits over 1800 and
+-- 	has NOT been elected into the hall of fame? 
+-- batting average = hits/atbats
+select Batting.playerID, sum(Batting.hits) as sh, sum(Batting.Atbats) as sab
+into answ81
+from Batting
+where yearID between 1930 and 1940
+group by playerID;
+
+select answ81.playerID, cast(answ81.sh as float)/answ81.sab as avgBatting
+into answ8
+from answ81
+where answ81.sab >0 and answ81.sh >1800 and answ81.playerID IN
+(select HallOfFame.playerID
+from HallOfFame
+where HallOfFame.inducted = 'N')
+order by avgBatting desc;  
+
+-- 9)what player averaged the highest number of walks from 1900-1920 with over 500 atbats?
+select Batting.playerID, sum(Batting.Walks) as sw, sum(Batting.Atbats) as sumAtbats
+into answ91
+from Batting, Players
+where yearID between 1900 and 1920 --between ×îºó
+group by Batting.playerID;
+
+select answ91.playerID, Players.namefirst, Players.namelast, answ91.sw, answ91.sumAtbats
+into answ9
+from answ91, Players
+where answ91.playerID = Players.playerid and sumAtbats >500
+order by sw desc;
+ 
+-- 10)write a query that uses a non equi join and explain what you are doing.
+
+
+-- 11)write a query that uses an OUTER Join and explain what you are doing.
+
+
+
+
+
